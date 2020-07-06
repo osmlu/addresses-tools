@@ -64,24 +64,25 @@ with index_query as (
 select distinct rue, sim from index_query where sim > 0.5 order by sim limit 30;
 """
 
-overpass_interpreter = "https://overpass-api.de/api/interpreter"
+# overpass_interpreter = "https://overpass-api.de/api/interpreter"
 # overpass_interpreter = 'https://overpass.openstreetmap.fr/api/interpreter'
-# overpass_interpreter = 'https://stereo.lu/missing-streetname.osm'
+overpass_interpreter = "https://stereo.lu/housenumber.osm"
 
-osmdata = requests.get(overpass_interpreter, data=overpass_query)
+# osmdata = requests.get(overpass_interpreter, data=overpass_query)
+# osmdata.encoding = 'utf-8'
+# osmdata = osmdata.text
 
-# f = open("housenumber.osm", "r")
-# osmdata = f.read()
+f = open("housenumber.osm", "r")
+osmdata = f.read()
 
-osmdata.encoding = 'utf-8'
-
-d = parse(osmdata.text, force_list=("tag", "node", "way", "relation"))
+d = parse(osmdata, force_list=("tag", "node", "way", "relation"))
 d["osm"]["@upload"] = "false"
 conn = psycopg2.connect("dbname=gis user=stereo", cursor_factory=DictCursor)
 cur = conn.cursor()
 
 uniques = 0
 multiples = 0
+
 
 def handletags(taglist, lat, lon):
     try:

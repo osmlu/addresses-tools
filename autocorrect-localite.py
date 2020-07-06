@@ -72,7 +72,7 @@ select distinct numero, rue, localite from index_query where dist < 50 limit 30;
 
 # overpass_interpreter = "https://overpass-api.de/api/interpreter"
 # overpass_interpreter = 'https://overpass.openstreetmap.fr/api/interpreter'
-overpass_interpreter = 'https://stereo.lu/housenumber.osm'
+overpass_interpreter = "https://stereo.lu/housenumber.osm"
 
 # osmdata = requests.get(overpass_interpreter, data=overpass_query)
 # osmdata.encoding = 'utf-8'
@@ -85,6 +85,9 @@ d = parse(osmdata, force_list=("tag", "node", "way", "relation"))
 d["osm"]["@upload"] = "false"
 conn = psycopg2.connect("dbname=gis user=stereo", cursor_factory=DictCursor)
 cur = conn.cursor()
+
+uniques = 0
+multiples = 0
 
 
 def handletags(taglist, lat, lon):
@@ -103,17 +106,15 @@ def handletags(taglist, lat, lon):
     # except IndexError:
     #     pass
     # log.debug(f"Numero: {numero}, rue:  {rue}, localite: {localite}, lat: {lat}, lon: {lon}")
-    cur.execute(postgis_query_match, {"lon": lon, "lat": lat, "numero": numero, "rue": rue, "localite": localite})
+    cur.execute(
+        postgis_query_match,
+        {"lon": lon, "lat": lat, "numero": numero, "rue": rue, "localite": localite},
+    )
     matchrows = cur.fetchall()
     if len(matchrows) != 1:  # meaning no match
         cur.execute(
             postgis_query_candidates,
-            {
-             "lon": lon,
-             "lat": lat,
-            "numero": numero,
-             "rue": rue
-             },
+            {"lon": lon, "lat": lat, "numero": numero, "rue": rue},
         )
         candirows = cur.fetchall()
         if len(candirows) == 0:  # no match at all
@@ -123,13 +124,19 @@ def handletags(taglist, lat, lon):
             log.warning(warning)
             taglist.append(OrderedDict([("@k", "fixme:CACLR"), ("@v", warning)]))
         if len(candirows) == 1:  # unique match
+            uniques += 1
             newloc = candirows[0]["localite"]
             for tag in taglist:
                 if tag["@k"] == "addr:city":
                     tag["@v"] = newloc
                     break
-            log.debug("Found unique match for {} {} {}, is now in {}".format(numero, rue, localite, newloc) )
+            log.debug(
+                "Found unique match for {} {} {}, is now in {}".format(
+                    numero, rue, localite, newloc
+                )
+            )
         elif len(candirows) >= 1:  # oooh, more than one candidate
+            multiples += 1
             candidates = [row["localite"] for row in candirows]
             warning = "found {} rows for {} {} in {} at {} {} : {}".format(
                 len(candirows), numero, rue, localite, lat, lon, candidates
@@ -175,3 +182,5 @@ for a_r in address_relations:
 
 with open("localite-autocorrect.osm", "w") as f:
     f.write(unparse(d, pretty=True))
+
+log.info(f"Uniques: {uniques}. Multiples: {multiples}")
