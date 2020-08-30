@@ -10,9 +10,9 @@ overpass_query = """
 [out:xml][timeout:99][maxsize:1073741824];
 area(3602171347)->.searchArea;
 (
-  node["addr:street"!~".*"]["addr:hamlet"!~".*"]["addr:place"!~".*"]["addr:housenumber"](area.searchArea);
-  way["addr:street"!~".*"]["addr:hamlet"!~".*"]["addr:place"!~".*"]["addr:housenumber"](area.searchArea);
-  relation["addr:street"!~".*"]["addr:hamlet"!~".*"]["addr:place"!~".*"]["addr:housenumber"](area.searchArea););
+  node["addr:street"!~".*"]["ref:caclr"!~".*"]["addr:place"!~".*"]["addr:housenumber"](area.searchArea);
+  way["addr:street"!~".*"]["ref:caclr"!~".*"]["addr:place"!~".*"]["addr:housenumber"](area.searchArea);
+  relation["addr:street"!~".*"]["ref:caclr"!~".*"]["addr:place"!~".*"]["addr:housenumber"](area.searchArea););
 (._;>;);
 out center meta qt;
 """
