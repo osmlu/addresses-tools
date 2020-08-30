@@ -31,73 +31,83 @@ with index_query as (
 select * from index_query where distance < 40 order by distance limit 10;
 """
 
-overpass_interpreter = 'https://overpass-api.de/api/interpreter'
+overpass_interpreter = "https://overpass-api.de/api/interpreter"
 # overpass_interpreter = 'https://overpass.openstreetmap.fr/api/interpreter'
 # overpass_interpreter = 'https://stereo.lu/missing-streetname.osm'
 
 osmdata = requests.get(overpass_interpreter, data=overpass_query).text
 
-d = parse(
-    osmdata, force_list=('tag', 'node', 'way', 'relation')
-    )
+d = parse(osmdata, force_list=("tag", "node", "way", "relation"))
 conn = psycopg2.connect("dbname=gis user=stereo", cursor_factory=DictCursor)
 cur = conn.cursor()
 
+
 def handletags(taglist, lat, lon):
     for tag in taglist:
-        if tag['@k'] == 'addr:housenumber':
-            cur.execute(postgis_query, (lon, lat, tag['@v'], lon, lat))
+        if tag["@k"] == "addr:housenumber":
+            cur.execute(postgis_query, (lon, lat, tag["@v"], lon, lat))
             rows = cur.fetchall()
             if len(rows) == 1:
                 row = rows[0]
-                if row['rue'] == "Maison":
-                    taglist.append(OrderedDict(
-                    [('@k', 'addr:place'), ('@v', row['localite'])]
-                    ))
+                if row["rue"] == "Maison":
+                    taglist.append(
+                        OrderedDict([("@k", "addr:place"), ("@v", row["localite"])])
+                    )
                 else:
-                    taglist.append(OrderedDict(
-                        [('@k', 'addr:street'), ('@v', row['rue'])]
-                        ))
-                        # Don't add other stuff (postcode, country, etc.) here -
-                        # it might already be there!! Run a separate overpass query.
+                    taglist.append(
+                        OrderedDict([("@k", "addr:street"), ("@v", row["rue"])])
+                    )
+                    # Don't add other stuff (postcode, country, etc.) here -
+                    # it might already be there!! Run a separate overpass query.
             else:
-                taglist.append(OrderedDict([('@k', 'fixme:CACLR'), ('@v', 'found {} rows for {} at {} {}'.format(len(rows), tag['@v'], lat, lon))]))
+                taglist.append(
+                    OrderedDict(
+                        [
+                            ("@k", "fixme:CACLR"),
+                            (
+                                "@v",
+                                "found {} rows for {} at {} {}".format(
+                                    len(rows), tag["@v"], lat, lon
+                                ),
+                            ),
+                        ]
+                    )
+                )
             return True
     # else:
     #     print('oops')
     #     return False
 
 
-address_nodes = d['osm']['node']
+address_nodes = d["osm"]["node"]
 for a_n in address_nodes:
-    lat = float(a_n['@lat'])
-    lon = float(a_n['@lon'])
-    if 'tag' in a_n:
-        if handletags(a_n['tag'], lat, lon):
-            a_n['@action'] = 'modify'
+    lat = float(a_n["@lat"])
+    lon = float(a_n["@lon"])
+    if "tag" in a_n:
+        if handletags(a_n["tag"], lat, lon):
+            a_n["@action"] = "modify"
 
-address_ways = d['osm']['way']
+address_ways = d["osm"]["way"]
 for a_w in address_ways:
-    lat = float(a_w['center']['@lat'])
-    lon = float(a_w['center']['@lon'])
-    if 'tag' in a_w:
-        if handletags(a_w['tag'], lat, lon):
-            del a_w['center']
-            a_w['@action'] = 'modify'
+    lat = float(a_w["center"]["@lat"])
+    lon = float(a_w["center"]["@lon"])
+    if "tag" in a_w:
+        if handletags(a_w["tag"], lat, lon):
+            del a_w["center"]
+            a_w["@action"] = "modify"
 
 try:
-    address_relations = d['osm']['relation']
+    address_relations = d["osm"]["relation"]
 except KeyError:
     pass
 else:
     for a_r in address_relations:
-        lat = float(a_r['center']['@lat'])
-        lon = float(a_r['center']['@lon'])
-        if handletags(a_r['tag'], lat, lon):
-            del a_r['center']
-            a_r['@action'] = 'modify'
+        lat = float(a_r["center"]["@lat"])
+        lon = float(a_r["center"]["@lon"])
+        if handletags(a_r["tag"], lat, lon):
+            del a_r["center"]
+            a_r["@action"] = "modify"
 
-with open('enriched_street.osm', 'w') as f:
+with open("enriched_street.osm", "w") as f:
     f.write(unparse(d, pretty=True))
 # print(unparse(d, pretty=True))
-

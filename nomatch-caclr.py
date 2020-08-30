@@ -70,7 +70,7 @@ overpass_interpreter = "https://overpass-api.de/api/interpreter"
 # overpass_interpreter = "https://stereo.lu/housenumber.osm"
 
 osmdata = requests.get(overpass_interpreter, data=overpass_query)
-osmdata.encoding = 'utf-8'
+osmdata.encoding = "utf-8"
 osmdata = osmdata.text
 
 # f = open("housenumber.osm", "r")
@@ -109,13 +109,17 @@ def handletags(taglist, lat, lon):
         log.warning(warning)
         taglist.append(OrderedDict([("@k", "fixme:CACLR"), ("@v", warning)]))
         return True
-    elif float(matchrows[0]['distance']) > 50:
+    elif float(matchrows[0]["distance"]) > 50:
         warning = f"Found match at {matchrows[0]['distance']} metres for {numero} {rue} in {localite} at {lat} {lon}. Query was {query}"
         log.warning(warning)
         taglist.append(OrderedDict([("@k", "fixme:CACLR"), ("@v", warning)]))
         return True
     else:  # address is already valid, don't touch
-        log.debug("CACLR match for {} {} {} at {} metres, no changes needed".format(numero, rue, localite, matchrows[0]['distance']) )
+        log.debug(
+            "CACLR match for {} {} {} at {} metres, no changes needed".format(
+                numero, rue, localite, matchrows[0]["distance"]
+            )
+        )
         return False
 
 
@@ -152,4 +156,3 @@ for a_r in address_relations:
 
 with open("nomatch-caclr.osm", "w") as f:
     f.write(unparse(d, pretty=True))
-

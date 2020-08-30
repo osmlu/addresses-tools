@@ -8,7 +8,7 @@ import requests
 
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 """
@@ -80,9 +80,6 @@ d["osm"]["@upload"] = "false"
 conn = psycopg2.connect("dbname=gis user=stereo", cursor_factory=DictCursor)
 cur = conn.cursor()
 
-uniques = 0
-multiples = 0
-
 
 def handletags(taglist, lat, lon):
     try:
@@ -95,6 +92,7 @@ def handletags(taglist, lat, lon):
     cur.execute(postgis_query_match, {"lon": lon, "lat": lat, "rue": rue})
     matchrows = cur.fetchall()
     if len(matchrows) != 1:  # meaning no match
+        log.info(f"Gonna look for {numero} {rue} at {lat} {lon}")
         cur.execute(
             postgis_query_candidates,
             {"lon": lon, "lat": lat, "rue": rue, "numero": numero},
@@ -104,23 +102,24 @@ def handletags(taglist, lat, lon):
             warning = "found {} rows for {} {} at {} {}".format(
                 len(candirows), numero, rue, lat, lon
             )
+            log.warning(warning)
             taglist.append(OrderedDict([("@k", "fixme:CACLR"), ("@v", warning)]))
         if len(candirows) == 1:  # unique match
-            uniques += 1
             newrue = candirows[0]["rue"]
             for tag in taglist:
                 if tag["@k"] == "addr:street":
                     tag["@v"] = newrue
                     break
         elif len(candirows) >= 1:  # oooh, more than one candidate
-            multiples += 1
             candidates = [row["rue"] for row in candirows]
             warning = "found {} rows for {} {} at {} {} : {}".format(
                 len(candirows), numero, rue, lat, lon, candidates
             )
+            log.warning(warning)
             taglist.append(OrderedDict([("@k", "fixme:CACLR"), ("@v", warning)]))
         return True
     else:  # street name is already valid, don't touch
+        log.debug(f"Full match for street {rue}")
         return False
 
 
@@ -155,7 +154,5 @@ for a_r in address_relations:
         del a_r["center"]
         a_r["@action"] = "modify"
 
-with open("housenumber-autocorrect.osm", "w") as f:
+with open("streetname-autocorrect.osm", "w") as f:
     f.write(unparse(d, pretty=True))
-
-log.info(f"Uniques: {uniques}. Multiples: {multiples}")

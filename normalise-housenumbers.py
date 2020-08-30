@@ -15,16 +15,18 @@ https://overpass-api.de/api/interpreter?data=%5Bout%3Axml%5D%5Btimeout%3A25%5D%3
 
 def handletags(taglist):
     # Valid worst case: 1BIS-2BBB
-    re_validaddress = re.compile("^[1-9][0-9]{0,2}[A-Z]{0,3}([-][1-9][0-9]{0,2}[A-Z]{0,3}){0,1}$")
+    re_validaddress = re.compile(
+        "^[1-9][0-9]{0,2}[A-Z]{0,3}([-][1-9][0-9]{0,2}[A-Z]{0,3}){0,1}$"
+    )
     iterate = False
     for tag in taglist:
         if iterate == True:
             break
         if tag["@k"] == "addr:housenumber":
-            iterate = True # stop looping over tags after this one
+            iterate = True  # stop looping over tags after this one
             # Don't touch if address already valid
             if re_validaddress.match(tag["@v"]):
-                
+
                 return False
             # This is where the magic happens
             # lowercase, e.g. "79a" becomes "79A"
