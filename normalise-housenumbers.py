@@ -14,36 +14,29 @@ https://overpass-api.de/api/interpreter?data=%5Bout%3Axml%5D%5Btimeout%3A25%5D%3
 
 
 def handletags(taglist):
-    # This regex also allows the , character between numbers. Eventually we'll
-    # want rid of that too.
-    re_validaddress = re.compile(
-        "^[1-9][0-9]{0,2}[A-Z]{0,3}([-]*[1-9][0-9]{0,2}[A-Z]{0,3}){0,12}$"
-    )
+    # Valid worst case: 1BIS-2BBB
+    re_validaddress = re.compile("^[1-9][0-9]{0,2}[A-Z]{0,3}([-][1-9][0-9]{0,2}[A-Z]{0,3}){0,1}$")
+    iterate = False
     for tag in taglist:
+        if iterate == True:
+            break
         if tag["@k"] == "addr:housenumber":
+            iterate = True # stop looping over tags after this one
             # Don't touch if address already valid
             if re_validaddress.match(tag["@v"]):
-
+                
                 return False
             # This is where the magic happens
-
             # lowercase, e.g. "79a" becomes "79A"
-
             # whitespace, e.g. "79 - 79A" becomes "79-79A"
             re_whitespace = re.compile(" ")
-
-            # Bad connector, 91/93 or 25;26. Replace with comma.
-            # One day, we will clean these up:
-            # - Replace 1,3 with 1-3 if that's an official address
-            # - Place separate nodes 1 and 3 and delete number from way if caclr
-            #   nodes within way
-            # - Manually terrace the leftovers (Maproulette?)
-            re_badconnector = re.compile("[;/&.]")
+            # Bad connector, 91/93 or 25;26 or 12,14
+            re_badconnector = re.compile("[;/&.,]")
 
             orig_v = tag["@v"]
 
             tag["@v"] = re_whitespace.sub(
-                "", re_badconnector.sub(",", tag["@v"])
+                "", re_badconnector.sub("-", tag["@v"])
             ).upper()
 
             # Sanity check
@@ -52,9 +45,7 @@ def handletags(taglist):
                 return False
 
             return True
-            break
-    else:  # for loop has ended without returning, no addr:housenumber tag
-        return False
+    return False
 
 
 overpass_query = """
