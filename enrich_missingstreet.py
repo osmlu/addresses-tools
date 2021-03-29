@@ -79,22 +79,32 @@ def handletags(taglist, lat, lon):
     #     return False
 
 
-address_nodes = d["osm"]["node"]
-for a_n in address_nodes:
-    lat = float(a_n["@lat"])
-    lon = float(a_n["@lon"])
-    if "tag" in a_n:
-        if handletags(a_n["tag"], lat, lon):
-            a_n["@action"] = "modify"
 
-address_ways = d["osm"]["way"]
-for a_w in address_ways:
-    lat = float(a_w["center"]["@lat"])
-    lon = float(a_w["center"]["@lon"])
-    if "tag" in a_w:
-        if handletags(a_w["tag"], lat, lon):
-            del a_w["center"]
-            a_w["@action"] = "modify"
+try:
+    address_nodes = d["osm"]["node"]
+except KeyError:
+    pass
+else:
+    for a_n in address_nodes:
+        lat = float(a_n["@lat"])
+        lon = float(a_n["@lon"])
+        if "tag" in a_n:
+            if handletags(a_n["tag"], lat, lon):
+                a_n["@action"] = "modify"
+
+
+try:
+    address_ways = d["osm"]["way"]
+except KeyError:
+    pass
+else:
+    for a_w in address_ways:
+        lat = float(a_w["center"]["@lat"])
+        lon = float(a_w["center"]["@lon"])
+        if "tag" in a_w:
+            if handletags(a_w["tag"], lat, lon):
+                del a_w["center"]
+                a_w["@action"] = "modify"
 
 try:
     address_relations = d["osm"]["relation"]
