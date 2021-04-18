@@ -68,16 +68,20 @@ QUERIES = {
 
 
 def main():
+
     debug = False
+    dbname = gis
     args = arguments.Args()
-    if args.get(0) == "-d":
+    if "-d" in args.flags:
         debug = True
         print(colored.yellow("DEBUG turned on"))
+    if "--db" in args.flags and args.grouped["--db"][0] != None:
+        dbname = args.grouped["--db"][0]
 
     # Try to connect
 
     try:
-        conn = psycopg2.connect("dbname='gis'")
+        conn = psycopg2.connect("dbname="+dbname)
     except Exception as exc:
         print(
             colored.red("DEBUG: I am unable to connect to the database: ", exc.args[0])
@@ -101,6 +105,11 @@ def main():
             )
     if debug:
         print(colored.green("DEBUG: Got {} communes! Progress:".format(len(communes))))
+
+    # Create destination directories if missing
+    for queryname, query in QUERIES.items():
+        destdir = Path(PATH + queryname)
+        destdir.mkdir(parents=True, exist_ok=True)
 
     # Get the json for all communes
 
