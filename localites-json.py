@@ -6,6 +6,7 @@ import psycopg2
 import json
 from clint import arguments
 from clint.textui import colored, progress
+from pathlib import Path
 
 PATH = "./streetlist/"
 
@@ -143,8 +144,11 @@ def main():
                         )
                     )
                 myjson = "{}"
-            with open(
-                PATH + queryname + "/" + commune.replace("/", "-sur-", 1) + ".json", "w"
+
+            filename = Path(PATH + queryname + "/" + commune.replace("/", "-sur-", 1) + ".json")
+            filename.touch(exist_ok=True)  # will create file, if it exists will do nothing
+            file = open(filename)
+            with open(filename, "w"
             ) as out_file:
                 out_file.write(myjson)
 
