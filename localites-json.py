@@ -70,7 +70,7 @@ QUERIES = {
 def main():
 
     debug = False
-    dbname = gis
+    dbname = 'gis'
     args = arguments.Args()
     if "-d" in args.flags:
         debug = True
