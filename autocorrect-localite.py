@@ -70,20 +70,20 @@ with index_query as (
 select distinct numero, rue, localite from index_query where dist < 50 limit 30;
 """
 
-# overpass_interpreter = "https://overpass-api.de/api/interpreter"
+overpass_interpreter = "https://overpass-api.de/api/interpreter"
 # overpass_interpreter = 'https://overpass.openstreetmap.fr/api/interpreter'
-overpass_interpreter = "https://stereo.lu/housenumber.osm"
+#overpass_interpreter = "https://stereo.lu/housenumber.osm"
 
-# osmdata = requests.get(overpass_interpreter, data=overpass_query)
-# osmdata.encoding = 'utf-8'
-# osmdata = osmdata.text
+osmdata = requests.get(overpass_interpreter, data=overpass_query)
+osmdata.encoding = 'utf-8'
+osmdata = osmdata.text
 
-f = open("housenumber.osm", "r")
-osmdata = f.read()
+#f = open("housenumber.osm", "r")
+#osmdata = f.read()
 
 d = parse(osmdata, force_list=("tag", "node", "way", "relation"))
 d["osm"]["@upload"] = "false"
-conn = psycopg2.connect("dbname=gis user=stereo", cursor_factory=DictCursor)
+conn = psycopg2.connect("dbname=osmlu user=stereo", cursor_factory=DictCursor)
 cur = conn.cursor()
 
 uniques = 0
@@ -91,6 +91,8 @@ multiples = 0
 
 
 def handletags(taglist, lat, lon):
+    global uniques
+    global multiples
     try:
         numero = [tag["@v"] for tag in taglist if tag["@k"] == "addr:housenumber"][0]
         rue = [tag["@v"] for tag in taglist if tag["@k"] == "addr:street"][0]

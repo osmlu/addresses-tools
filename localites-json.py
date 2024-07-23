@@ -94,11 +94,11 @@ def main():
         print(colored.red("DEBUG: I can't SELECT the communes: ", exc.args[0]))
 
     communes = cur.fetchall()
-    if len(communes) != 102:
+    if len(communes) != 100:
         if debug:
             print(
                 colored.red(
-                    "DEBUG: Got the wrong number of communes! Expected 106 rows, got {}".format(
+                    "DEBUG: Got the wrong number of communes! Expected 100 rows, got {}".format(
                         len(communes)
                     )
                 )
@@ -116,8 +116,8 @@ def main():
     for commune in progress.bar(
         [communelist[0] for communelist in communes],
         label="Communes handled ",
-        expected_size=102,
-        width=102,
+        expected_size=100,
+        width=100,
     ):
         if debug:
             print(colored.blue("DEBUG: " + commune))

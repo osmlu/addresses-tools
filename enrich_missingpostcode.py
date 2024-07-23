@@ -51,7 +51,7 @@ osmdata = requests.get(overpass_interpreter, data=overpass_query).text
 # print(osmdata)
 
 d = parse(osmdata, force_list=("tag", "node", "way", "relation"))
-conn = psycopg2.connect("dbname=gis user=stereo", cursor_factory=DictCursor)
+conn = psycopg2.connect("dbname=osmlu user=stereo", cursor_factory=DictCursor)
 cur = conn.cursor()
 
 
@@ -65,12 +65,10 @@ def handletags(taglist, lat, lon):
     try:
         city = [tag["@v"] for tag in taglist if tag["@k"] == "addr:city"][0]
     except IndexError:
-        hamlet = [tag["@v"] for tag in taglist if tag["@k"] == "addr:hamlet"][0]
-    except IndexError:
         error = "{} {} at {} {} has neither city nor hamlet".format(
             numero, rue, lat, lon
         )
-        log.error()
+        log.error(error)
         return False
     cur.execute(
         postgis_query,

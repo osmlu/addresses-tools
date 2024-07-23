@@ -13,3 +13,4 @@ If you get a KeyError: 'osm' it means there's nothing to do :]. Copy the try/exc
 
 If you need a local housenumber file:
  wget -N http://osm.kewl.lu/luxembourg.osm/luxembourg.osm.bz2; bzip2 --decompress --force luxembourg.osm.bz2 ;osmfilter --keep="addr:housenumber=" luxembourg.osm -o=housenumber.osm
+

@@ -31,6 +31,8 @@ overpass_query = """
 [out:xml][timeout:99][maxsize:1073741824];
 area(3602171347)->.searchArea;
 nwr["ref:caclr"!~".*"]["addr:street"](area.searchArea);
+// v-- leave this out and update *modified* data in josm. Script takes ages otherwise.
+// (._;>;);
 out center meta qt;
 """
 
@@ -72,12 +74,14 @@ osmdata = requests.get(overpass_interpreter, data=overpass_query)
 osmdata.encoding = 'utf-8'
 osmdata = osmdata.text
 
+log.debug(f"Osmdata: \n%s", osmdata)
+
 # f = open("housenumber.osm", "r")
 # osmdata = f.read()
 
 d = parse(osmdata, force_list=("tag", "node", "way", "relation"))
 d["osm"]["@upload"] = "false"
-conn = psycopg2.connect("dbname=gis user=stereo", cursor_factory=DictCursor)
+conn = psycopg2.connect("dbname=osmlu user=stereo", cursor_factory=DictCursor)
 cur = conn.cursor()
 
 

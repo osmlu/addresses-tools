@@ -51,7 +51,7 @@ osmdata = requests.get(overpass_interpreter, data=overpass_query).text
 # print(osmdata)
 
 d = parse(osmdata, force_list=("tag", "node", "way", "relation"))
-conn = psycopg2.connect("dbname=gis user=stereo", cursor_factory=DictCursor)
+conn = psycopg2.connect("dbname=osmlu user=stereo", cursor_factory=DictCursor)
 cur = conn.cursor()
 
 
@@ -84,14 +84,18 @@ def handletags(taglist, lat, lon):
         log.warning(warning)
     return True
 
-
-address_nodes = d["osm"]["node"]
-for a_n in address_nodes:
-    lat = float(a_n["@lat"])
-    lon = float(a_n["@lon"])
-    if "tag" in a_n:
-        if handletags(a_n["tag"], lat, lon):
-            a_n["@action"] = "modify"
+try:
+    address_nodes = d["osm"]["node"]
+except KeyError:
+    pass
+else:
+    address_nodes = d["osm"]["node"]
+    for a_n in address_nodes:
+        lat = float(a_n["@lat"])
+        lon = float(a_n["@lon"])
+        if "tag" in a_n:
+            if handletags(a_n["tag"], lat, lon):
+                a_n["@action"] = "modify"
 
 address_ways = d["osm"]["way"]
 for a_w in address_ways:

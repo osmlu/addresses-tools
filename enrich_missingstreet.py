@@ -38,7 +38,7 @@ overpass_interpreter = "https://overpass-api.de/api/interpreter"
 osmdata = requests.get(overpass_interpreter, data=overpass_query).text
 
 d = parse(osmdata, force_list=("tag", "node", "way", "relation"))
-conn = psycopg2.connect("dbname=gis user=stereo", cursor_factory=DictCursor)
+conn = psycopg2.connect("dbname=osmlu user=stereo", cursor_factory=DictCursor)
 cur = conn.cursor()
 
 
