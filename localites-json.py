@@ -1,6 +1,12 @@
-#!/usr/bin/env python
-#
-#
+#!/usr/bin/env -S uv run --script
+# /// script
+# dependencies = [
+#     "psycopg2-binary",
+#     "clint",
+#     "pathlib",
+# ]
+# requires-python = ">=3.14"
+# ///
 
 import psycopg2
 import json
